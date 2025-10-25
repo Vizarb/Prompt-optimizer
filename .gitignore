@@ -1,4 +1,38 @@
 rules/rules_*.yaml
 templates/system_prompt_*.txt
 venv/
+
+# ===================================
+#  Global Env Files
+# ===================================
+.env
+.env.local
+.env.*
+!.env*.example
+
+*.egg-info/
+
+# ===================================
+#  System & Editor Files
+# ===================================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+.vscode/
+.idea/
+*.swp
+*.tmp
+*.bak
+*.iml
+
+
+#  Misc
+*.log
+*.pid
+*.zip
+*.tar.gz
+*.workflow.log
+.github/workflows/temp*
 __pycache__/
