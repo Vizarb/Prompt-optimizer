@@ -1,0 +1,4 @@
+rules/rules_*.yaml
+templates/system_prompt_*.txt
+venv/
+__pycache__/

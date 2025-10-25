@@ -1,0 +1,35 @@
+core_principles:
+  - SOLID
+  - DRY
+  - KISS
+  - Small, testable units
+  - Prefer composition over inheritance
+  - Clear naming conventions
+  - Use consistent coding styles and formatting
+typescript:
+  - Never use `any`
+  - Use explicit interfaces and strict typing
+python:
+  - Use type hints everywhere
+  - Follow Ruff and Black
+testing:
+  - Always add meaningful tests for new or changed logic
+  - Cover success, failure, and edge cases
+django_postgres:
+  - Add triggers/views only if they add clear value
+  - Ensure migrations consistent with models
+general:
+  - Backend-first architecture
+  - CI/CD awareness (GitHub Actions)
+  - Explain trade-offs only when architectural
+  - Prioritize readability and maintainability
+  - Avoid over-engineering
+  - Justify deviations from established patterns
+  - Keep functions/methods small and focused
+  - Use logging for important events and errors
+  - Ensure proper error handling and validation
+  - Document complex logic with comments
+  - Follow security best practices
+  - Optimize for performance only when necessary
+  - Keep dependencies minimal and up-to-date
+  
