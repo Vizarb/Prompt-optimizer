@@ -260,9 +260,11 @@ python rewrite.py "implement new ffmpeg burn options" --stack "Django+DRF+Postgr
 
 * **Model selection:** Automatically switches between coder/general models.
 * **CPU-only mode:** Use `OLLAMA_NUM_GPU_LAYERS=0` to avoid GPU load.
-* **Output structure:** T4All profile outputs six ordered sections:
-  `Goal → Inputs → Constraints → Tasks → Output Format → Acceptance Criteria`
-* **Rules:** Define DRY, SOLID, KISS, typing, testing, CI standards, etc.
+* **Adaptive output structure:**
+  - For implementation prompts → `Goal → Inputs → Constraints → Tasks → Output Format → Acceptance Criteria`
+  - For review/refactor prompts → uses the same order with adaptive section names.
+* **Rules:** Hierarchical (HIGH/MEDIUM/LOW priority) enforcing architecture, typing, tests, style, logging, OS behavior, and CI.
+* **OS handling:** assumes **Windows** by default but prefers cross-platform code whenever feasible (`pathlib` over `os.path`, portable shell syntax).
 * **Overrides:** Only filenames within `rules/` and `templates/` are valid.
 
 ---
@@ -286,6 +288,106 @@ python rewrite.py "implement new ffmpeg burn options" --stack "Django+DRF+Postgr
    ```json
    { "raw_prompt": "…" , "profile": "freemarket" }
    ```
+
+---
+
+## CPU-Only vs GPU Mode
+
+By default, Ollama uses your **GPU** when available for faster inference.
+To keep your GPU free for other workloads (for example, the **T4All** pipeline), you can start a **CPU-only Ollama server** and point the Prompt Optimizer to it.
+
+### **1. GPU (Default Mode)**
+
+When you start Ollama normally, it automatically detects and uses your GPU.
+
+```powershell
+# Windows
+ollama serve
+```
+
+```bash
+# Linux / macOS
+ollama serve
+```
+
+This starts a GPU-enabled Ollama server on the default port **11434**.
+Your optimizer will automatically use it if `OLLAMA_HOST` isn’t overridden.
+
+---
+
+### **2. CPU-Only Mode (Recommended for Prompt Optimizer)**
+
+Run a dedicated Ollama instance that uses **only the CPU**, leaving your GPU free for other apps.
+
+**Windows PowerShell**
+
+```powershell
+# Hide GPUs and force CPU inference for this shell only
+$env:CUDA_VISIBLE_DEVICES = ""
+$env:OLLAMA_LLM_LIBRARY   = "cpu_avx2"   # use "cpu" on older CPUs
+$env:OLLAMA_HOST          = "127.0.0.1:12345"
+ollama serve
+```
+
+**Linux / macOS**
+
+```bash
+export CUDA_VISIBLE_DEVICES=
+export OLLAMA_LLM_LIBRARY=cpu_avx2
+export OLLAMA_HOST=127.0.0.1:12345
+ollama serve
+```
+
+This launches a CPU-only Ollama server on **port 12345**.
+You’ll see logs such as:
+
+```
+Listening on 127.0.0.1:12345
+inference compute id=cpu library=cpu
+entering low vram mode
+```
+
+---
+
+### **3. Point the Optimizer to the CPU-Only Server**
+
+Start the FastAPI service (Prompt Optimizer) in a separate terminal and set its `OLLAMA_HOST`
+to the full URL of the CPU-only instance:
+
+```powershell
+$env:OLLAMA_HOST = "http://127.0.0.1:12345"
+uvicorn main:app --reload --port 8800
+```
+
+Check configuration:
+
+```bash
+curl http://127.0.0.1:8800/config
+```
+
+Expected:
+
+```json
+{"ollama_host": "http://127.0.0.1:12345"}
+```
+
+The Optimizer will now send all rewrite requests to the CPU-only server while your GPU remains free for T4All or other projects.
+
+---
+
+### **4. Quick Verification**
+
+1. Confirm the Ollama server is responding:
+
+   ```bash
+   curl http://127.0.0.1:12345/api/tags
+   ```
+
+   You should see a JSON list of models.
+
+2. Check that GPU usage stays at 0 % while generating (Task Manager or `nvidia-smi`).
+
+3. To return to GPU mode, simply stop the CPU server and run `ollama serve` normally again.
 
 ---
 

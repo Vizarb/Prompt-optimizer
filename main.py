@@ -7,7 +7,8 @@ from pathlib import Path
 import yaml
 from typing import Literal
 
-from llm_client import generate_rewrite
+from llm_client import generate_rewrite, _OLLAMA_HOST_ENV
+import os
 
 app = FastAPI(title="Prompt Rewriter – Profile Aware")
 
@@ -18,14 +19,15 @@ TPL_DIR   = Path("templates")
 # Profiles registry (add more as you create them)
 PROFILES: dict[str, dict[str, str]] = {
     "t4all": {
-        "rules": "rules_t4all.yaml",
-        "template": "system_prompt_t4all.txt",
+        "rules": "rules_t4all_v2.yaml",
+        "template": "system_prompt_t4all_v2.txt",
     },
     "default": {
         "rules": "rules.yaml",
         "template": "system_prompt.txt",
     },
 }
+
 
 def _safe_join(base: Path, name: str) -> Path:
     """
@@ -62,6 +64,18 @@ class RewriteRequest(BaseModel):
     # Optional explicit overrides (filenames only, relative to folders)
     rules_file: str | None = None          # e.g. "my_rules.yaml"
     template_file: str | None = None       # e.g. "my_system_prompt.txt"
+
+
+@app.get("/config")
+def show_config():
+    """
+    Quick check endpoint to confirm which Ollama host and compute mode are in use.
+    """
+    return {
+        "_OLLAMA_HOST_ENV": _OLLAMA_HOST_ENV,
+        "compute_mode": os.getenv("PROMPT_OPTIMIZER_COMPUTE", "auto").strip().lower(),
+    }
+
 
 
 @app.get("/profiles")
